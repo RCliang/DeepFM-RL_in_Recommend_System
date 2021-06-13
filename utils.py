@@ -6,8 +6,10 @@ Created on Thu Jun 10 22:18:42 2021
 """
 
 import pandas as pd
-from sklearn.preprocessing import  OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+import numpy as np
+
 
 def sparseFeature(feat, feat_num, embed_dim=4):
     """
@@ -31,10 +33,10 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
     print('==========Data Preprocess Start============')
     # rating_data
     data_df = pd.read_csv(file1, sep="::", engine='python',
-                     names=['user_id', 'item_id', 'label', 'Timestamp'])
+                          names=['user_id', 'item_id', 'label', 'Timestamp'])
     # user_data
     user_df = pd.read_csv(file2, sep="::", engine='python',
-                          names=['user_id','gender','occupation','zip_code'])
+                          names=['user_id', 'gender', 'occupation', 'zip_code'])
     # implicit dataset
     data_df = data_df[data_df.label >= trans_score]
 
@@ -42,7 +44,8 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
     data_df = data_df.sort_values(by=['user_id', 'Timestamp'])
     user_df = user_df.sort_values(by=['user_id'])
     enc = OneHotEncoder()
-    user_feat = enc.fit_transform(user_df[['gender', 'age', 'occupation']]).toarray()
+    user_feat = enc.fit_transform(
+        user_df[['gender', 'age', 'occupation']]).toarray()
 
     train_data, val_data, test_data = [], [], []
 
@@ -59,7 +62,8 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
                 train_data.append([user_id, hist_i, temp_feat])
 
     # feature columns
-    user_num, item_num = data_df['user_id'].max() + 1, data_df['item_id'].max() + 1
+    user_num, item_num = data_df['user_id'].max(
+    ) + 1, data_df['item_id'].max() + 1
     feature_columns = [sparseFeature('user_id', user_num, embed_dim),
                        sparseFeature('item_id', item_num, embed_dim)]
 
@@ -77,7 +81,7 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
     # create dataset
     def df_to_list(data):
         return [data['user_id'].values, pad_sequences(data['hist'], maxlen=maxlen),
-                data['user_feat'].values]
+                [np.array(x) for x in data['user_feat']]]
 
     train_X = df_to_list(train)
     val_X = df_to_list(val)
