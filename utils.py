@@ -36,7 +36,7 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
                           names=['user_id', 'item_id', 'label', 'Timestamp'])
     # user_data
     user_df = pd.read_csv(file2, sep="::", engine='python',
-                          names=['user_id', 'gender', 'occupation', 'zip_code'])
+                          names=['user_id', 'gender', 'age', 'occupation', 'zip_code'])
     # implicit dataset
     data_df = data_df[data_df.label >= trans_score]
 
