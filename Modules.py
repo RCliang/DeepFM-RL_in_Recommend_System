@@ -73,7 +73,6 @@ class SelfAttention_Layer(nn.Module):
         # Scaled
         scaled_att_logits = mat_qk / torch.sqrt(dk)
         # Mask
-        print(q.shape)
         mask = torch.unsqueeze(mask, 1).repeat(1, q.shape[1], 1)  # (None, seq_len, seq_len)
         paddings = torch.ones(scaled_att_logits.shape) * (-2 ** 32 + 1)
         outputs = torch.where(mask.eq(0), paddings, scaled_att_logits)  # (None, seq_len, seq_len)

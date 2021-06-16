@@ -9,7 +9,8 @@ import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
-
+from tqdm import tqdm
+import random
 
 def sparseFeature(feat, feat_num, embed_dim=4):
     """
@@ -68,9 +69,9 @@ def create_implicit_ml_1m_dataset(file1, file2, trans_score=2, embed_dim=8, maxl
                        sparseFeature('item_id', item_num, embed_dim)]
 
     # shuffle
-    random.shuffle(train_data)
-    random.shuffle(val_data)
-    random.shuffle(test_data)
+    #random.shuffle(train_data)
+    #random.shuffle(val_data)
+    #random.shuffle(test_data)
 
     # create dataframe
     train = pd.DataFrame(train_data, columns=['user_id', 'hist', 'user_feat'])

@@ -12,6 +12,8 @@ np.random.seed(1)
 class DeepQNetwork:
     def __init__(
             self,
+            feature_columns,
+            all_dims,
             n_actions,
             n_features,
             learning_rate=0.01,
@@ -39,8 +41,8 @@ class DeepQNetwork:
 
         # initialize zero memory
         self.memory = np.zeros((self.memory_size, n_features*2 + 2))
-        self.eval_net = Net(self.n_features, self.n_actions)
-        self.target_net = Net(self.n_features, self.n_actions)
+        self.eval_net = Deepnet(feature_columns,all_dims)
+        self.target_net = Deepnet(feature_columns,all_dims)
         # consist of [target_net,evaluate_net]
 
         if output_graph:
@@ -51,15 +53,14 @@ class DeepQNetwork:
         self.optimizer = torch.optim.Adam(
             self.eval_net.parameters(), lr=learning_rate)
 
-    def choose_action(self, observation):
+    def choose_action(self, observation, good_pools):
         # to have batch dimension when feed into tf placeholder
-        observation = torch.unsqueeze(torch.FloatTensor(observation), 0)
         if np.random.uniform() < self.epsilon:
             # forward feed the observation and get q value for every actions
             actions_value = self.eval_net.forward(observation)
-            action = torch.max(actions_value, 1)[1].data.numpy()
+            action = torch.max(actions_value, 1)[1].data.numpy()[0]
         else:
-            action = np.random.randint(0, self.n_actions)
+            action = np.random.choice(good_pools)
         return action
 
     def store_transition(self, s, a, r, s_):
@@ -116,9 +117,6 @@ class DeepQNetwork:
 
         self.cost_his.append(loss.item())
 
-        self.writer.add_graph(self.eval_net, b_s)
-        self.writer.add_graph(self.target_net, b_s_)
-        self.writer.close()
         # increasing epsilon
         self.epsilon = self.epsilon + \
             self.epsilon_increment if self.epsilon < self.epsilon_max else self.epsilon_max
@@ -130,10 +128,4 @@ class DeepQNetwork:
         plt.xlabel('training steps')
         plt.show()
 
-    def write(self):
-        temp = self.memory[0]
-        b_s = torch.FloatTensor(temp[:, :self.n_features])
-        b_s_ = torch.FloatTensor(temp[:, -self.n_features:])
-        self.writer.add_graph(self.eval_net, b_s)
-        self.writer.add_graph(self.target_net, b_s_)
-        self.writer.close()
+

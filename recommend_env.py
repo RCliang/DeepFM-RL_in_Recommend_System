@@ -1,15 +1,24 @@
 import pandas as pd
-
+import numpy as np
 '''
 虚拟环境env
 主要功能：对action做出反应给出reward和下一个状态observation_
 '''
-
-
 class virtual_env(object):
-    def __init__(self, feature_columns, train_X):
-        self.data = train_X
-
-    def next_step(action):
-
+    def __init__(self, user_id, train_X, data_df):
+        self.user_df = data_df[(data_df.user_id==user_id)]
+        self.user_id = user_id
+        index = np.argwhere(train_X[0] == user_id)
+        index = np.squeeze(index)
+        self.need_seq = train_X[1][index]
+        self.all_movies = self.need_seq[:,-1]
+    def next_step(self, observation, action):
+        if action in self.all_movies:
+            idx = np.argwhere(self.all_movies == action)
+            observation_ = self.need_seq[idx, :]
+            temp = self.user_df[self.user_df['item_id'] == action]
+            reward = temp['label'].values[0]
+        else:
+            observation_ = observation
+            reward = 0
         return observation_, reward
