@@ -61,6 +61,11 @@ class SelfAttention_Layer(nn.Module):
 
     def forward(self, inputs, **kwargs):
         q, k, v, mask = inputs
+        if torch.cuda.is_available():
+            q.cuda()
+            k.cuda()
+            v.cuda()
+            mask.cuda()
         # pos encoding
         k += self.positional_encoding(k)
         q += self.positional_encoding(q)
@@ -69,7 +74,7 @@ class SelfAttention_Layer(nn.Module):
         k = F.relu(torch.matmul(k, self.Weight))  # (None, seq_len, dim)
         mat_qk = torch.matmul(q, k.transpose(1, 2))  # (None, seq_len, seq_len)
 
-        dk = torch.FloatTensor([self.dim])
+        dk = torch.FloatTensor([self.dim]).cuda()
         # Scaled
         scaled_att_logits = mat_qk / torch.sqrt(dk)
         # Mask
@@ -95,7 +100,7 @@ class SelfAttention_Layer(nn.Module):
         angle_rads[:, 1::2] = np.cos(angle_rads[:, 1::2])
         pos_encoding = angle_rads[np.newaxis, ...]
 
-        return torch.FloatTensor(pos_encoding)
+        return torch.FloatTensor(pos_encoding).cuda()
 
 class DNN(nn.Module):
     """

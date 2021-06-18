@@ -29,15 +29,14 @@ class Deepnet(nn.Module):
 
     def forward(self, inputs):
         seq_inputs, feat_inputs = inputs[:,:self.max_len], inputs[:,self.max_len:]
-        mask = torch.tensor(seq_inputs).ne(0).type(
-            torch.FloatTensor)  # (batch, maxlen)
+        mask = torch.tensor(seq_inputs).ne(0).type(torch.FloatTensor)  # (batch, maxlen)
         # user_embed = self.user_embedding(torch.LongTensor(user_inputs)) # (batch, dim)
-        seq_embed = self.item_embedding(
-            torch.LongTensor(seq_inputs))  # (None, maxlen, dim)
+        seq_inputs = seq_inputs.type(torch.LongTensor).cuda()
+        seq_embed = self.item_embedding(seq_inputs)  # (None, maxlen, dim)
         short_interest = self.self_attention(
             [seq_embed, seq_embed, seq_embed, mask])  # (batch, dim)
-        deep_feat = self.dnn(torch.FloatTensor(feat_inputs))
-        wide_feat = self.FM(torch.FloatTensor(feat_inputs))
+        deep_feat = self.dnn(torch.FloatTensor(feat_inputs).cuda())
+        wide_feat = self.FM(torch.FloatTensor(feat_inputs).cuda())
         wide_deep = self.w*deep_feat+(1-self.w)*wide_feat
         all_feat = torch.cat((wide_deep, short_interest), 1)
         res = F.relu(self.fc1(all_feat))

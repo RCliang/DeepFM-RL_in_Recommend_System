@@ -43,6 +43,9 @@ class DeepQNetwork:
         self.memory = np.zeros((self.memory_size, n_features*2 + 2))
         self.eval_net = Deepnet(feature_columns,all_dims)
         self.target_net = Deepnet(feature_columns,all_dims)
+        if torch.cuda.is_available():
+            self.eval_net.cuda()
+            self.target_net.cuda()
         # consist of [target_net,evaluate_net]
 
         if output_graph:
@@ -57,6 +60,8 @@ class DeepQNetwork:
         # to have batch dimension when feed into tf placeholder
         if np.random.uniform() < self.epsilon:
             # forward feed the observation and get q value for every actions
+            if torch.cuda.is_available():
+                observation=torch.tensor(observation).cuda()
             actions_value = self.eval_net.forward(observation)
             action = torch.max(actions_value, 1)[1].data.numpy()[0]
         else:
@@ -67,7 +72,6 @@ class DeepQNetwork:
         if not hasattr(self, 'memory_counter'):
             self.memory_counter = 0
         transition = np.hstack((s, [a, r], s_))
-
         # replace the old memory with new memory
         index = self.memory_counter % self.memory_size
         self.memory[index, :] = transition
@@ -88,8 +92,8 @@ class DeepQNetwork:
                 self.memory_counter, size=self.batch_size)
         batch_memory = self.memory[sample_index, :]
 
-        b_s = torch.FloatTensor(batch_memory[:, :self.n_features])
-        b_s_ = torch.FloatTensor(batch_memory[:, -self.n_features:])
+        b_s = torch.FloatTensor(batch_memory[:, :self.n_features]).cuda()
+        b_s_ = torch.FloatTensor(batch_memory[:, -self.n_features:]).cuda()
 
         q_eval = self.eval_net(b_s)
         q_next = self.target_net(b_s_).detach()

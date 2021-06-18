@@ -39,7 +39,6 @@ RL = DeepQNetwork(feature_columns, 150, 3953, n_features=K_times+30, memory_size
 #RL.target_net.to(device)
 for epoch in range(epoches):
     for user_id in users_list:
-        step=0
         env = virtual_env(user_id, train_X, data_df)
         index = np.argwhere(users == user_id)
         index = np.squeeze(index)
@@ -52,12 +51,11 @@ for epoch in range(epoches):
             print(action)
             observation_, reward = env.next_step(observation, action)
             RL.store_transition(np.squeeze(observation), action, reward, np.squeeze(observation_))
-            if (step > 200) and (step % 5 == 0):
+            if (k > 20) and (k % 5 == 0):
                 RL.learn()
                 # swap observation
             observation = observation_
-            step+=1
-    torch.save({'epoch': epoch + 1, 'state_dict': RL.eval_net.state_dict(), 'best_loss': min(RL.cost_his),
-                'optimizer': RL.eval_net.optimizer.state_dict()},
+    print("epoch is {}, min loss is {}".format(epoch, min(RL.cost_his)))
+    torch.save({'epoch': epoch + 1, 'state_dict': RL.eval_net.state_dict(), 'best_loss': min(RL.cost_his)},
                PATH + '/m-' + launchTimestamp + '-' + '.pth.tar')
 

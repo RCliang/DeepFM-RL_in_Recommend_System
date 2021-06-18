@@ -11,13 +11,15 @@ class virtual_env(object):
         index = np.argwhere(train_X[0] == user_id)
         index = np.squeeze(index)
         self.need_seq = train_X[1][index]
+        self.need_feats = np.array(train_X[2])[index]
         self.all_movies = self.need_seq[:,-1]
     def next_step(self, observation, action):
         if action in self.all_movies:
             idx = np.argwhere(self.all_movies == action)
-            observation_ = self.need_seq[idx, :]
+            observation_=np.concatenate((np.squeeze(self.need_seq[idx, :],0), np.squeeze(self.need_feats[idx,:],0)), axis=1)
             temp = self.user_df[self.user_df['item_id'] == action]
             reward = temp['label'].values[0]
+            print("reward is {}".format(reward))
         else:
             observation_ = observation
             reward = 0
