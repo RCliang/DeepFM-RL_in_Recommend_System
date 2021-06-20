@@ -29,11 +29,12 @@ class FMLayer(nn.Module):
         注意到，nn.Parameter的对象的requires_grad属性的默认值是True，即是可被训练的，这与torth.Tensor对象的默认值相反。
         在nn.Module类中，pytorch也是使用nn.Parameter来对每一个module的参数进行初始化的。
         '''
-        self.v = nn.Parameter(torch.randn(self.n, self.k))   # 交互矩阵
+        self.v = nn.Parameter(torch.randn(self.n, self.k)).cuda()  # 交互矩阵
         nn.init.uniform_(self.v, -0.1, 0.1)
 
     def fm_layer(self, x):
         # x 属于 R^{batch*n}
+        x=x.cuda()
         linear_part = self.linear(x)
         #print("linear_part",linear_part.shape)
         # linear_part = torch.unsqueeze(linear_part, 1)
@@ -80,7 +81,7 @@ class SelfAttention_Layer(nn.Module):
         # Mask
         mask = torch.unsqueeze(mask, 1).repeat(1, q.shape[1], 1)  # (None, seq_len, seq_len)
         paddings = torch.ones(scaled_att_logits.shape) * (-2 ** 32 + 1)
-        outputs = torch.where(mask.eq(0), paddings, scaled_att_logits)  # (None, seq_len, seq_len)
+        outputs = torch.where(mask.eq(0).cuda(), paddings.cuda(), scaled_att_logits)  # (None, seq_len, seq_len)
         # softmax
         outputs = F.softmax(outputs, dim=-1)  # (None, seq_len, seq_len)
         # output
@@ -127,7 +128,7 @@ class DNN(nn.Module):
         self.dropout = nn.Dropout(dnn_dropout)
 
     def forward(self, inputs, **kwargs):
-        x = inputs
+        x = inputs.cuda()
         x = self.dnn_network(x)
         x = self.dropout(x)
         return x

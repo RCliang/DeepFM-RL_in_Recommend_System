@@ -35,8 +35,8 @@ class Deepnet(nn.Module):
         seq_embed = self.item_embedding(seq_inputs)  # (None, maxlen, dim)
         short_interest = self.self_attention(
             [seq_embed, seq_embed, seq_embed, mask])  # (batch, dim)
-        deep_feat = self.dnn(torch.FloatTensor(feat_inputs).cuda())
-        wide_feat = self.FM(torch.FloatTensor(feat_inputs).cuda())
+        deep_feat = self.dnn(feat_inputs.type(torch.FloatTensor))
+        wide_feat = self.FM(feat_inputs.type(torch.FloatTensor))
         wide_deep = self.w*deep_feat+(1-self.w)*wide_feat
         all_feat = torch.cat((wide_deep, short_interest), 1)
         res = F.relu(self.fc1(all_feat))

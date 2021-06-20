@@ -34,7 +34,7 @@ users, seqs, feats = train_X
 users_list = np.unique(users)
 
 
-RL = DeepQNetwork(feature_columns, 150, 3953, n_features=K_times+30, memory_size=2000)
+RL = DeepQNetwork(feature_columns, 150, 3953, n_features=K_times+30, memory_size=2000,e_greedy=0.65)
 #RL.eval_net.to(device)
 #RL.target_net.to(device)
 for epoch in range(epoches):

@@ -63,6 +63,7 @@ class DeepQNetwork:
             if torch.cuda.is_available():
                 observation=torch.tensor(observation).cuda()
             actions_value = self.eval_net.forward(observation)
+            actions_value = actions_value.cpu()
             action = torch.max(actions_value, 1)[1].data.numpy()[0]
         else:
             action = np.random.choice(good_pools)
@@ -109,8 +110,7 @@ class DeepQNetwork:
         # print("eval_act_index",eval_act_index)
         #print("reward, {}".format(torch.FloatTensor(reward).shape))
         #print("q_next: ",q_next.max(1)[0].view(self.batch_size, 1).shape)
-        q_target[batch_index, eval_act_index] = torch.FloatTensor(
-            reward)+self.gamma*q_next.max(1)[0].view(self.batch_size)
+        q_target[batch_index, eval_act_index] = torch.FloatTensor(reward).cuda()+self.gamma*q_next.max(1)[0].view(self.batch_size)
 
         # train eval network
 
